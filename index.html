@@ -361,6 +361,34 @@
     border-color: var(--accent);
   }
   .drive-btn.primary:hover { background: #134d88; }
+  .icon-btn {
+    padding: 10px 12px;
+    min-width: 42px;
+    justify-content: center;
+  }
+  .icon-btn i { font-size: 18px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--success);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 1000;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 
   /* Divider */
   .divider { height: 1px; background: var(--border); margin: 14px 0; }
@@ -387,11 +415,13 @@
     .sev-header-row, .sev-row { grid-template-columns: 70px repeat(5, 1fr); gap: 4px; }
     .action-bar { flex-direction: column; align-items: stretch; }
     .action-btns { margin-left: 0; width: 100%; }
-    .drive-btn, .download-btn { flex: 1; justify-content: center; }
+    .drive-btn, .download-btn, .icon-btn { flex: 1; justify-content: center; }
   }
 </style>
 </head>
 <body>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="page-wrap">
 
@@ -584,8 +614,11 @@
   <div class="action-bar" id="action-bar">
     <p class="drive-status" id="drive-status">Upload the closure PDF to your team’s Google Drive folder.</p>
     <div class="action-btns">
+      <button type="button" class="drive-btn secondary icon-btn" id="refresh-btn" title="Refresh page" aria-label="Refresh page">
+        <i class="ti ti-refresh"></i>
+      </button>
       <button type="button" class="drive-btn primary" id="drive-save-btn" disabled>
-        <i class="ti ti-cloud-upload"></i> Upload PDF to Drive
+        <i class="ti ti-cloud-upload"></i> Upload to Team's drive
       </button>
       <button type="button" class="download-btn" id="download-btn" onclick="downloadPdf()">
         <i class="ti ti-download"></i> Download

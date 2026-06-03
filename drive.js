@@ -1,4 +1,6 @@
 (function () {
+  let toastTimer = null;
+
   function config() {
     return window.TEST_CLOSURE_DRIVE || {};
   }
@@ -13,6 +15,18 @@
     if (!el) return;
     el.textContent = text;
     el.className = 'drive-status' + (type ? ' drive-status-' + type : '');
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      toastTimer = null;
+    }, 2000);
   }
 
   function blobToBase64(blob) {
@@ -70,22 +84,15 @@
     const btn = document.getElementById('drive-save-btn');
     const label = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader"></i> Uploading PDF…';
+    btn.innerHTML = '<i class="ti ti-loader"></i> Uploading…';
 
     try {
-      const result = await uploadPdfToTeamDrive();
-      const name = (result.files && result.files[0]) ? result.files[0].name : 'PDF';
-      setStatus('PDF uploaded to team Drive: ' + name, 'ok');
-
-      const folderUrl = (config().folderViewUrl || '').trim();
-      if (folderUrl) {
-        const open = confirm('PDF uploaded successfully. Open the team folder in Google Drive?');
-        if (open) window.open(folderUrl, '_blank', 'noopener');
-      }
+      await uploadPdfToTeamDrive();
+      showToast('Successfully uploaded');
     } catch (err) {
       console.error(err);
       alert('Could not upload PDF: ' + err.message);
-      setStatus('PDF upload failed. Check the Apps Script deployment.', 'error');
+      setStatus('Upload failed. Check the Apps Script deployment.', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = label;
@@ -94,9 +101,13 @@
 
   function initDriveUI() {
     const saveBtn = document.getElementById('drive-save-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
     if (!saveBtn) return;
 
     saveBtn.addEventListener('click', saveToDrive);
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => location.reload());
+    }
 
     if (!isConfigured()) {
       setStatus('Team Drive not configured. Admin: deploy google-apps-script/Code.gs and set uploadUrl in drive-config.js.', 'warn');
@@ -110,4 +121,5 @@
   }
 
   window.initTestClosureDrive = initDriveUI;
+  window.showToast = showToast;
 })();
