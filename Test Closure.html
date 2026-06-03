@@ -411,12 +411,14 @@
   /* PDF export (off-screen clone) */
   .pdf-export-root {
     position: fixed;
-    left: -10000px;
+    left: 0;
     top: 0;
     width: 780px;
     background: #fff;
-    z-index: -1;
+    z-index: 99999;
+    opacity: 0;
     pointer-events: none;
+    overflow: visible;
   }
   .pdf-export-page {
     width: 780px;
@@ -687,6 +689,8 @@
 
 <script src="drive-config.js"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="drive.js"></script>
 <script>
@@ -794,7 +798,18 @@
   }
 
   const PDF_PAGE_W = 780;
-  const PDF_CANVAS_SCALE = 3;
+  const PDF_CANVAS_SCALE = 2;
+
+  function getHtml2Canvas() {
+    if (typeof html2canvas === 'function') return html2canvas;
+    throw new Error('html2canvas failed to load. Check your network connection.');
+  }
+
+  function createJsPDF() {
+    const JsPDF = window.jspdf?.jsPDF || window.jsPDF;
+    if (!JsPDF) throw new Error('jsPDF failed to load. Check your network connection.');
+    return new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+  }
 
   function escapeHtml(str) {
     return String(str)
@@ -957,15 +972,14 @@
   }
 
   async function renderPageToPdf(pdf, pageEl, isFirstPage) {
-    const canvas = await html2canvas(pageEl, {
+    const canvas = await getHtml2Canvas()(pageEl, {
       scale: PDF_CANVAS_SCALE,
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
-      letterRendering: true,
       width: PDF_PAGE_W,
       windowWidth: PDF_PAGE_W,
-      scrollY: 0,
+      scrollY: -window.scrollY,
       scrollX: 0
     });
 
@@ -985,7 +999,7 @@
     if (!isFirstPage) pdf.addPage();
     const offsetX = margin + (contentW - drawW) / 2;
     const offsetY = margin;
-    pdf.addImage(imgData, 'PNG', offsetX, offsetY, drawW, drawH, undefined, 'FAST');
+    pdf.addImage(imgData, 'PNG', offsetX, offsetY, drawW, drawH);
     addPdfLinkAnnotations(pdf, pageEl, offsetX, offsetY, drawW, drawH);
   }
 
@@ -1001,9 +1015,9 @@
     const exportRoot = buildPdfExportRoot();
     await new Promise(r => setTimeout(r, 300));
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    const pdf = createJsPDF();
     const pages = exportRoot.querySelectorAll('.pdf-export-page');
+    if (!pages.length) throw new Error('No PDF pages to render');
 
     try {
       for (let i = 0; i < pages.length; i++) {
@@ -1040,7 +1054,7 @@
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      alert('Could not generate PDF. Please try again.');
+      alert('Could not generate PDF: ' + (err.message || err));
     } finally {
       btn.disabled = false;
       btn.innerHTML = label;
