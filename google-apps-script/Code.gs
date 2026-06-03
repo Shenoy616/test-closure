@@ -32,20 +32,13 @@ function doPost(e) {
     var unique = base + '-' + stamp;
     var files = [];
 
-    if (payload.pdfBase64) {
-      var pdfBytes = Utilities.base64Decode(payload.pdfBase64);
-      var pdf = folder.createFile(Utilities.newBlob(pdfBytes, 'application/pdf', unique + '.pdf'));
-      files.push({ name: pdf.getName(), id: pdf.getId() });
+    if (!payload.pdfBase64) {
+      throw new Error('Missing PDF in upload payload');
     }
 
-    if (payload.json) {
-      var jsonFile = folder.createFile(Utilities.newBlob(String(payload.json), 'application/json', unique + '.json'));
-      files.push({ name: jsonFile.getName(), id: jsonFile.getId() });
-    }
-
-    if (!files.length) {
-      throw new Error('No files in upload payload');
-    }
+    var pdfBytes = Utilities.base64Decode(payload.pdfBase64);
+    var pdf = folder.createFile(Utilities.newBlob(pdfBytes, 'application/pdf', unique + '.pdf'));
+    files.push({ name: pdf.getName(), id: pdf.getId() });
 
     return jsonResponse({
       ok: true,

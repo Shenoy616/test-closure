@@ -9,7 +9,9 @@ cd "/Users/gopalakrishnashenoy/Desktop/Projects/Test Closure "
 python3 -m http.server 8891
 ```
 
-Open [http://localhost:8891/Test%20Closure.html](http://localhost:8891/Test%20Closure.html)
+**Live app:** [https://shenoy616.github.io/test-closure/](https://shenoy616.github.io/test-closure/)
+
+Local dev: [http://localhost:8891/Test%20Closure.html](http://localhost:8891/Test%20Closure.html)
 
 ---
 
@@ -17,7 +19,7 @@ Open [http://localhost:8891/Test%20Closure.html](http://localhost:8891/Test%20Cl
 
 One person on the team sets this up **once**. After that, anyone using the app can click **Upload to team Drive** — no OAuth client ID per user, no individual sign-in.
 
-Files land in one shared folder (PDF + JSON per submission).
+Each upload saves one PDF in the shared team folder.
 
 ### Step 1 — Create the team folder
 
@@ -64,8 +66,8 @@ Share the whole project folder (or at least `drive-config.js` with the URL fille
 ### Step 4 — Use the app
 
 1. Fill out the form.
-2. Click **Upload to team Drive**.
-3. PDF and JSON are saved with a timestamp, e.g. `Test-Closure-2026-06-03-143052.pdf`.
+2. Click **Upload PDF to Drive**.
+3. The PDF is saved with a timestamp, e.g. `Test-Closure-2026-06-03-143052.pdf`.
 
 **Download** still saves a PDF only on the user’s computer.
 

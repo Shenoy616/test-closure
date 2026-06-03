@@ -27,47 +27,13 @@
     });
   }
 
-  function collectFormData() {
-    const dateRanges = [];
-    document.querySelectorAll('#meta-date-ranges .date-range').forEach((block, i) => {
-      const start = block.querySelector('.meta-start-date');
-      const end = block.querySelector('.meta-end-date');
-      dateRanges.push({
-        iteration: i + 1,
-        startDate: start?.value || '',
-        endDate: end?.value || ''
-      });
-    });
-
-    return {
-      savedAt: new Date().toISOString(),
-      links: {
-        shortcut: document.getElementById('shortcut-link')?.value || '',
-        pr: document.getElementById('pr-link')?.value || '',
-        testomata: document.getElementById('testomata-link')?.value || '',
-        defects: document.querySelector('#body-links textarea')?.value || ''
-      },
-      checklist: { ...(window.checkState || {}) },
-      checklistBoxes: { ...(window.checkBoxState || {}) },
-      risksHtml: window.riskQuill ? window.riskQuill.root.innerHTML : '',
-      environment: {
-        browser: document.getElementById('env-browser')?.value || '',
-        device: document.getElementById('env-device')?.value || '',
-        platform: document.getElementById('env-platform')?.value || ''
-      },
-      dateRanges,
-      signoff: { ...(window.checkBoxState || {}) }
-    };
-  }
-
-  async function uploadToTeamDrive() {
+  async function uploadPdfToTeamDrive() {
     const uploadUrl = config().uploadUrl.trim();
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const base = 'Test-Closure-' + new Date().toISOString().slice(0, 10);
 
     const pdfBlob = await window.generateTestClosurePdf();
     const pdfBase64 = await blobToBase64(pdfBlob);
-    const json = JSON.stringify(collectFormData(), null, 2);
 
     const res = await fetch(uploadUrl, {
       method: 'POST',
@@ -76,8 +42,7 @@
       body: JSON.stringify({
         filename: base,
         stamp: stamp,
-        pdfBase64: pdfBase64,
-        json: json
+        pdfBase64: pdfBase64
       })
     });
 
@@ -105,22 +70,22 @@
     const btn = document.getElementById('drive-save-btn');
     const label = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader"></i> Uploading…';
+    btn.innerHTML = '<i class="ti ti-loader"></i> Uploading PDF…';
 
     try {
-      const result = await uploadToTeamDrive();
-      const names = (result.files || []).map(f => f.name).join(', ');
-      setStatus('Uploaded to team Drive: ' + names, 'ok');
+      const result = await uploadPdfToTeamDrive();
+      const name = (result.files && result.files[0]) ? result.files[0].name : 'PDF';
+      setStatus('PDF uploaded to team Drive: ' + name, 'ok');
 
       const folderUrl = (config().folderViewUrl || '').trim();
       if (folderUrl) {
-        const open = confirm('Uploaded successfully. Open the team folder in Google Drive?');
+        const open = confirm('PDF uploaded successfully. Open the team folder in Google Drive?');
         if (open) window.open(folderUrl, '_blank', 'noopener');
       }
     } catch (err) {
       console.error(err);
-      alert('Could not upload to team Drive: ' + err.message);
-      setStatus('Upload failed. Ask your admin to check the Apps Script deployment.', 'error');
+      alert('Could not upload PDF: ' + err.message);
+      setStatus('PDF upload failed. Check the Apps Script deployment.', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = label;
@@ -140,7 +105,7 @@
     }
 
     const folderName = config().folderName || 'shared team folder';
-    setStatus('Anyone on the team can upload PDF + data to the ' + folderName + ' on Google Drive.', 'ok');
+    setStatus('Upload the closure PDF to the ' + folderName + ' on Google Drive.', 'ok');
     saveBtn.disabled = false;
   }
 
