@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Test Closure App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --surface2: #F2F1EE;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1A1917;
+    --text2: #6B6A66;
+    --text3: #9C9B97;
+    --accent: #185FA5;
+    --accent-light: #E6F1FB;
+    --accent-text: #0C447C;
+    --success: #3B6D11;
+    --success-bg: #EAF3DE;
+    --success-border: #97C459;
+    --warning-bg: #FAEEDA;
+    --warning-text: #854F0B;
+    --warning-border: #FAC775;
+    --danger-bg: #FCEBEB;
+    --danger-text: #A32D2D;
+    --danger-border: #F09595;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-pill: 999px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    --shadow-lg: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .page-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .app-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.5rem 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .app-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .app-logo img {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+  .app-header-text { width: 100%; }
+  .app-title { font-size: 20px; font-weight: 600; color: var(--text); }
+  .app-subtitle { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 1.5rem; }
+  .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .progress-lbl { font-size: 12px; color: var(--text2); }
+  .progress-pct { font-size: 12px; font-weight: 600; color: var(--accent); font-family: 'DM Mono', monospace; }
+  .progress-track { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); height: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #185FA5, #378ADD); border-radius: var(--radius-pill); transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Section cards */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .section-head:hover { background: var(--surface2); }
+
+  .sec-icon {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sec-icon i { font-size: 16px; color: var(--text2); }
+
+  .sec-title { font-size: 14px; font-weight: 500; flex: 1; }
+
+  .sec-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+  }
+  .badge-done { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .badge-pending { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+  .badge-partial { background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); }
+
+  .sec-chevron { font-size: 14px; color: var(--text3); transition: transform 0.2s ease; flex-shrink: 0; }
+  .sec-chevron.open { transform: rotate(180deg); }
+
+  .section-body {
+    display: none;
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .section-body.open { display: block; }
+
+  /* Form elements */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label.lbl {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+  label.lbl .req { color: #E24B4A; margin-left: 2px; }
+
+  input[type=text],
+  input[type=url],
+  input[type=date],
+  select,
+  textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 11px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type=text]:focus,
+  input[type=url]:focus,
+  input[type=date]:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(24,95,165,0.12);
+  }
+  textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+  select { cursor: pointer; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; align-items: center; }
+
+  /* Checklist */
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+  }
+  .check-item:last-child { margin-bottom: 0; }
+  .check-lbl { font-size: 13px; flex: 1; }
+  .check-btns { display: flex; gap: 5px; }
+  .chk-btn {
+    font-size: 11px; font-weight: 500;
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .chk-btn:hover { background: var(--surface2); }
+  .chk-btn.pass { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+  .chk-btn.fail { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+  .chk-btn.na   { background: var(--surface2); color: var(--text2); border-color: var(--border2); font-style: italic; }
+
+  /* Severity grid */
+  .sev-header-row {
+    display: grid;
+    grid-template-columns: 90px repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 0 2px;
+  }
+  .sev-col-hdr { font-size: 10px; font-weight: 500; color: var(--text3); text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sev-row {
+    display: grid;
+    grid-template-columns: 90px repeat(5, 1fr);
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .sev-tag {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  .sev-c { background: var(--danger-bg); color: var(--danger-text); }
+  .sev-h { background: var(--warning-bg); color: var(--warning-text); }
+  .sev-m { background: var(--accent-light); color: var(--accent-text); }
+  .sev-l { background: var(--success-bg); color: var(--success); }
+  .sev-inp { text-align: center; padding: 6px 4px; font-family: 'DM Mono', monospace; }
+
+  /* Sign-off */
+  .signoff-header {
+    display: grid;
+    grid-template-columns: 1fr 150px 130px;
+    gap: 10px;
+    padding: 0 14px 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .signoff-header span { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .sign-row {
+    display: grid;
+    grid-template-columns: 1fr 150px 130px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+  }
+  .sign-person { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .sign-name { font-size: 13px; font-weight: 500; }
+  .sign-role-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  .sign-btns { display: flex; gap: 6px; }
+  .sign-btn {
+    flex: 1;
+    font-size: 11px; font-weight: 500;
+    padding: 5px 8px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sign-btn:hover { background: var(--surface2); }
+  .sign-btn.approved { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+  .sign-btn.pending { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); }
+  .signoff-info { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text2); margin-top: 10px; }
+
+  /* Stats */
+  .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1rem; }
+  .stat-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 14px; border: 1px solid var(--border); }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+  .stat-val { font-size: 22px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+
+  /* Risk table */
+  .risk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .risk-table th {
+    font-size: 10px; font-weight: 500; color: var(--text3);
+    padding: 5px 8px; border-bottom: 1px solid var(--border);
+    text-align: left; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .risk-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .risk-table input {
+    border: none; background: transparent; width: 100%;
+    font-size: 12px; color: var(--text); padding: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .risk-table input:focus { outline: none; }
+  .risk-table tr:last-child td { border-bottom: none; }
+
+  .add-row-btn {
+    font-size: 12px; color: var(--accent);
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+    margin-top: 10px; background: none; border: none; padding: 0;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+  }
+  .add-row-btn:hover { text-decoration: underline; }
+
+  /* Submit bar */
+  .submit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow-lg);
+    gap: 12px;
+  }
+  .submit-info { font-size: 13px; color: var(--text2); }
+  .submit-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 24px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.15s, transform 0.1s;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .submit-btn:hover { background: #0C447C; }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: var(--surface2); color: var(--text3); cursor: not-allowed; transform: none; }
+
+  .submit-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .download-btn {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .download-btn:hover { background: var(--accent-light); }
+  .download-btn:active { transform: scale(0.98); }
+  .download-btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1A1917; color: #fff;
+    padding: 12px 22px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 9999;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  /* Section number chips */
+  .sec-num {
+    font-size: 10px; font-weight: 600;
+    background: var(--surface2);
+    color: var(--text3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 2px 7px;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  /* Env grid */
+  .env-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  @media (max-width: 560px) {
+    .grid-2, .grid-3, .env-grid, .stat-grid { grid-template-columns: 1fr; }
+    .sign-row { grid-template-columns: 1fr; }
+    .sev-header-row, .sev-row { grid-template-columns: 70px repeat(5, 1fr); gap: 4px; }
+    .submit-bar { flex-direction: column; align-items: stretch; }
+    .submit-actions { width: 100%; flex-direction: column; }
+    .download-btn, .submit-btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="app-logo">
+      <img src="Unifize.svg" alt="Unifize" width="104" height="24" />
+    </div>
+    <div class="app-header-text">
+      <div class="app-title">Test Closure</div>
+      <div class="app-subtitle">Complete all sections and collect sign-offs before closing</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-lbl" id="prog-lbl">0 of 11 sections complete</span>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- ── Section 1: Core Links ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('links')">
+      <div class="sec-icon"><i class="ti ti-link"></i></div>
+      <span class="sec-title">Core links</span>
+      <span class="sec-num">01</span>
+      <span class="sec-badge badge-pending" id="badge-links">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron open" id="chev-links"></i>
+    </div>
+    <div class="section-body open" id="body-links">
+      <div class="field">
+        <label class="lbl">Shortcut ticket link <span class="req">*</span></label>
+        <input type="url" id="shortcut-link" placeholder="https://app.shortcut.com/story/..." oninput="refresh()" />
+      </div>
+      <div class="field">
+        <label class="lbl">PR link <span class="req">*</span></label>
+        <input type="url" id="pr-link" placeholder="https://github.com/org/repo/pull/..." oninput="refresh()" />
+      </div>
+      <div class="field">
+        <label class="lbl">Testomata execution link <span class="req">*</span></label>
+        <input type="url" id="testomata-link" placeholder="https://..." oninput="refresh()" />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="lbl">Defects — Shortcut link</label>
+          <input type="url" placeholder="https://app.shortcut.com/..." />
+        </div>
+        <div class="field">
+          <label class="lbl">Defects — CSV link</label>
+          <input type="url" placeholder="https://..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Checklist ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('checklist')">
+      <div class="sec-icon"><i class="ti ti-checklist"></i></div>
+      <span class="sec-title">Checklist</span>
+      <span class="sec-num">02</span>
+      <span class="sec-badge badge-pending" id="badge-checklist">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-checklist"></i>
+    </div>
+    <div class="section-body" id="body-checklist">
+      <div class="check-item">
+        <span class="check-lbl">Backward compatibility check</span>
+        <div class="check-btns">
+          <button class="chk-btn" onclick="chk(this,'backward','pass')">Pass</button>
+          <button class="chk-btn" onclick="chk(this,'backward','fail')">Fail</button>
+          <button class="chk-btn" onclick="chk(this,'backward','na')">N/A</button>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-lbl">Forward compatibility check</span>
+        <div class="check-btns">
+          <button class="chk-btn" onclick="chk(this,'forward','pass')">Pass</button>
+          <button class="chk-btn" onclick="chk(this,'forward','fail')">Fail</button>
+          <button class="chk-btn" onclick="chk(this,'forward','na')">N/A</button>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-lbl">Proof of testing attached for Testomata</span>
+        <div class="check-btns">
+          <button class="chk-btn" onclick="chk(this,'proof','pass')">Yes</button>
+          <button class="chk-btn" onclick="chk(this,'proof','fail')">No</button>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-lbl">Regression suite executed</span>
+        <div class="check-btns">
+          <button class="chk-btn" onclick="chk(this,'regression','pass')">Pass</button>
+          <button class="chk-btn" onclick="chk(this,'regression','fail')">Fail</button>
+          <button class="chk-btn" onclick="chk(this,'regression','na')">N/A</button>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-lbl">Data migration check</span>
+        <div class="check-btns">
+          <button class="chk-btn" onclick="chk(this,'migration','pass')">Pass</button>
+          <button class="chk-btn" onclick="chk(this,'migration','fail')">Fail</button>
+          <button class="chk-btn" onclick="chk(this,'migration','na')">N/A</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Test Summary ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('summary')">
+      <div class="sec-icon"><i class="ti ti-chart-pie"></i></div>
+      <span class="sec-title">Test summary</span>
+      <span class="sec-num">03</span>
+      <span class="sec-badge badge-pending" id="badge-summary">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-summary"></i>
+    </div>
+    <div class="section-body" id="body-summary">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">Pass rate</div><div class="stat-val" id="disp-passrate">—</div></div>
+        <div class="stat-card"><div class="stat-lbl">Coverage</div><div class="stat-val" id="disp-coverage">—</div></div>
+        <div class="stat-card"><div class="stat-lbl">Total cases</div><div class="stat-val" id="disp-total">—</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="field"><label class="lbl">Total</label><input type="number" id="tc-total" placeholder="0" min="0" oninput="calcStats()" /></div>
+        <div class="field"><label class="lbl">Passed</label><input type="number" id="tc-pass" placeholder="0" min="0" oninput="calcStats()" /></div>
+        <div class="field"><label class="lbl">Failed</label><input type="number" id="tc-fail" placeholder="0" min="0" /></div>
+      </div>
+      <div class="grid-3">
+        <div class="field"><label class="lbl">Blocked</label><input type="number" placeholder="0" min="0" /></div>
+        <div class="field"><label class="lbl">Skipped</label><input type="number" placeholder="0" min="0" /></div>
+        <div class="field"><label class="lbl">Coverage %</label><input type="number" id="tc-coverage" placeholder="0" min="0" max="100" oninput="calcStats()" /></div>
+      </div>
+      <div class="field">
+        <label class="lbl">Test plan link</label>
+        <input type="url" placeholder="https://..." />
+      </div>
+      <div class="field">
+        <label class="lbl">Automation suite run link</label>
+        <input type="url" placeholder="https://..." />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 4: Defect Summary ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('defects')">
+      <div class="sec-icon"><i class="ti ti-bug"></i></div>
+      <span class="sec-title">Defect summary</span>
+      <span class="sec-num">04</span>
+      <span class="sec-badge badge-pending" id="badge-defects">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-defects"></i>
+    </div>
+    <div class="section-body" id="body-defects">
+      <div class="sev-header-row">
+        <div></div>
+        <div class="sev-col-hdr">Total</div>
+        <div class="sev-col-hdr">Open</div>
+        <div class="sev-col-hdr">Closed</div>
+        <div class="sev-col-hdr">Deferred</div>
+        <div class="sev-col-hdr">Waived</div>
+      </div>
+      <div class="sev-row">
+        <div><span class="sev-tag sev-c">Critical</span></div>
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+      </div>
+      <div class="sev-row">
+        <div><span class="sev-tag sev-h">High</span></div>
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+      </div>
+      <div class="sev-row">
+        <div><span class="sev-tag sev-m">Medium</span></div>
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+      </div>
+      <div class="sev-row">
+        <div><span class="sev-tag sev-l">Low</span></div>
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+        <input class="sev-inp" type="number" placeholder="0" min="0" />
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <label class="lbl">Waived defects justification</label>
+        <textarea placeholder="List any waived defects with business or risk justification..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 5: Risk & Known Issues ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('risks')">
+      <div class="sec-icon"><i class="ti ti-alert-triangle"></i></div>
+      <span class="sec-title">Risk & known issues</span>
+      <span class="sec-num">05</span>
+      <span class="sec-badge badge-pending" id="badge-risks">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-risks"></i>
+    </div>
+    <div class="section-body" id="body-risks">
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th style="width:30%">Issue / risk</th>
+            <th style="width:14%">Severity</th>
+            <th style="width:14%">Status</th>
+            <th style="width:20%">Owner</th>
+            <th style="width:22%">Remarks</th>
+          </tr>
+        </thead>
+        <tbody id="risk-body">
+          <tr>
+            <td><input type="text" placeholder="Describe the risk..." /></td>
+            <td><input type="text" placeholder="High" /></td>
+            <td><input type="text" placeholder="Open" /></td>
+            <td><input type="text" placeholder="Owner name" /></td>
+            <td><input type="text" placeholder="Notes" /></td>
+          </tr>
+          <tr>
+            <td><input type="text" placeholder="Describe the risk..." /></td>
+            <td><input type="text" placeholder="Medium" /></td>
+            <td><input type="text" placeholder="Deferred" /></td>
+            <td><input type="text" placeholder="Owner name" /></td>
+            <td><input type="text" placeholder="Notes" /></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="add-row-btn" onclick="addRisk()"><i class="ti ti-plus"></i> Add row</button>
+      <div class="divider"></div>
+      <div class="field">
+        <label class="lbl">Out of scope items</label>
+        <textarea placeholder="List anything explicitly excluded from this test cycle and why..."></textarea>
+      </div>
+      <div class="field">
+        <label class="lbl">Deferred test cases</label>
+        <textarea placeholder="Test case IDs, reason for deferral, and target release..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 6: Environment ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('env')">
+      <div class="sec-icon"><i class="ti ti-device-laptop"></i></div>
+      <span class="sec-title">Environment & configuration</span>
+      <span class="sec-num">06</span>
+      <span class="sec-badge badge-pending" id="badge-env">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-env"></i>
+    </div>
+    <div class="section-body" id="body-env">
+      <div class="env-grid">
+        <div class="field"><label class="lbl">Application version / build</label><input type="text" placeholder="v2.4.1 / build-240603" /></div>
+        <div class="field"><label class="lbl">API version(s) tested</label><input type="text" placeholder="v1, v2" /></div>
+        <div class="field"><label class="lbl">Operating system(s)</label><input type="text" placeholder="macOS 14, Windows 11" /></div>
+        <div class="field"><label class="lbl">Browser(s) / platforms</label><input type="text" placeholder="Chrome 125, Safari 17, Firefox 126" /></div>
+        <div class="field"><label class="lbl">Devices tested</label><input type="text" placeholder="iPhone 15, Pixel 8, iPad Pro" /></div>
+        <div class="field">
+          <label class="lbl">Test environment</label>
+          <select>
+            <option value="">— select —</option>
+            <option>Dev</option>
+            <option>Staging</option>
+            <option>UAT</option>
+            <option>Pre-Prod</option>
+            <option>Production</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 7: Compatibility ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('compat')">
+      <div class="sec-icon"><i class="ti ti-arrows-exchange"></i></div>
+      <span class="sec-title">Compatibility coverage</span>
+      <span class="sec-num">07</span>
+      <span class="sec-badge badge-pending" id="badge-compat">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-compat"></i>
+    </div>
+    <div class="section-body" id="body-compat">
+      <div class="grid-2">
+        <div class="field"><label class="lbl">Backward compatibility — versions</label><input type="text" placeholder="e.g. v1.0, v1.5" /></div>
+        <div class="field"><label class="lbl">Forward compatibility — versions</label><input type="text" placeholder="e.g. v3.0 beta" /></div>
+        <div class="field"><label class="lbl">Cross-browser matrix</label><input type="text" placeholder="Chrome, Firefox, Safari, Edge" /></div>
+        <div class="field"><label class="lbl">Cross-device matrix</label><input type="text" placeholder="iOS, Android, Desktop" /></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 8: Traceability ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('trace')">
+      <div class="sec-icon"><i class="ti ti-git-branch"></i></div>
+      <span class="sec-title">Traceability & references</span>
+      <span class="sec-num">08</span>
+      <span class="sec-badge badge-pending" id="badge-trace">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-trace"></i>
+    </div>
+    <div class="section-body" id="body-trace">
+      <div class="field"><label class="lbl">Requirement / user story link</label><input type="url" placeholder="https://..." /></div>
+      <div class="field"><label class="lbl">Release notes link</label><input type="url" placeholder="https://..." /></div>
+      <div class="grid-2">
+        <div class="field"><label class="lbl">Sprint / release tag</label><input type="text" placeholder="Sprint 42 / v2.4.0" /></div>
+        <div class="field"><label class="lbl">Build / commit tag</label><input type="text" placeholder="build-20260603 / abc1234" /></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 9: Automation ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('auto')">
+      <div class="sec-icon"><i class="ti ti-robot"></i></div>
+      <span class="sec-title">Automation coverage</span>
+      <span class="sec-num">09</span>
+      <span class="sec-badge badge-pending" id="badge-auto">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-auto"></i>
+    </div>
+    <div class="section-body" id="body-auto">
+      <div class="grid-2">
+        <div class="field"><label class="lbl">Automation coverage %</label><input type="number" placeholder="75" min="0" max="100" /></div>
+        <div class="field"><label class="lbl">New test cases added to automation</label><input type="number" placeholder="12" min="0" /></div>
+      </div>
+      <div class="field"><label class="lbl">Flaky tests identified</label><input type="text" placeholder="List test IDs or names..." /></div>
+    </div>
+  </div>
+
+  <!-- ── Section 10: Timestamps ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('meta')">
+      <div class="sec-icon"><i class="ti ti-calendar"></i></div>
+      <span class="sec-title">Timestamps & metadata</span>
+      <span class="sec-num">10</span>
+      <span class="sec-badge badge-pending" id="badge-meta">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-meta"></i>
+    </div>
+    <div class="section-body" id="body-meta">
+      <div class="grid-2">
+        <div class="field"><label class="lbl">Testing start date <span class="req">*</span></label><input type="date" id="start-date" oninput="refresh()" /></div>
+        <div class="field"><label class="lbl">Testing end date <span class="req">*</span></label><input type="date" id="end-date" oninput="refresh()" /></div>
+        <div class="field"><label class="lbl">Prepared by</label><input type="text" placeholder="Your full name" /></div>
+        <div class="field"><label class="lbl">Date of closure</label><input type="date" /></div>
+      </div>
+      <div class="field">
+        <label class="lbl">Additional comments / notes</label>
+        <textarea placeholder="Any additional remarks, observations, or follow-up action items..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 11: Sign-off ── -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggle('signoff')">
+      <div class="sec-icon"><i class="ti ti-writing"></i></div>
+      <span class="sec-title">Test closure sign-off</span>
+      <span class="sec-num">11</span>
+      <span class="sec-badge badge-pending" id="badge-signoff">Pending</span>
+      <i class="ti ti-chevron-down sec-chevron" id="chev-signoff"></i>
+    </div>
+    <div class="section-body" id="body-signoff">
+      <div class="signoff-header">
+        <span>Approver</span>
+        <span>Role</span>
+        <span>Status</span>
+      </div>
+
+      <div class="sign-row" id="sr-0">
+        <div class="sign-person">
+          <div class="avatar" style="background:#E6F1FB;color:#0C447C;">GS</div>
+          <div>
+            <div class="sign-name">Gopalakrishna Shenoy</div>
+            <div class="sign-role-sub">Approver</div>
+          </div>
+        </div>
+        <input type="text" placeholder="e.g. QA Lead" style="font-size:12px;" />
+        <div class="sign-btns">
+          <button class="sign-btn" onclick="sign(0,'approved')">✓ Approve</button>
+          <button class="sign-btn" onclick="sign(0,'pending')">⏳ Pending</button>
+        </div>
+      </div>
+
+      <div class="sign-row" id="sr-1">
+        <div class="sign-person">
+          <div class="avatar" style="background:#EAF3DE;color:#3B6D11;">ST</div>
+          <div>
+            <div class="sign-name">Shuchi Trivedi</div>
+            <div class="sign-role-sub">Approver</div>
+          </div>
+        </div>
+        <input type="text" placeholder="e.g. Engineering Lead" style="font-size:12px;" />
+        <div class="sign-btns">
+          <button class="sign-btn" onclick="sign(1,'approved')">✓ Approve</button>
+          <button class="sign-btn" onclick="sign(1,'pending')">⏳ Pending</button>
+        </div>
+      </div>
+
+      <div class="sign-row" id="sr-2">
+        <div class="sign-person">
+          <div class="avatar" style="background:#FAEEDA;color:#854F0B;">SR</div>
+          <div>
+            <div class="sign-name">Saransh Ramaiya</div>
+            <div class="sign-role-sub">Approver</div>
+          </div>
+        </div>
+        <input type="text" placeholder="e.g. Product Manager" style="font-size:12px;" />
+        <div class="sign-btns">
+          <button class="sign-btn" onclick="sign(2,'approved')">✓ Approve</button>
+          <button class="sign-btn" onclick="sign(2,'pending')">⏳ Pending</button>
+        </div>
+      </div>
+
+      <div class="sign-row" id="sr-3">
+        <div class="sign-person">
+          <div class="avatar" style="background:#FBEAF0;color:#993556;">VS</div>
+          <div>
+            <div class="sign-name">Varun Srinivasan</div>
+            <div class="sign-role-sub">Approver</div>
+          </div>
+        </div>
+        <input type="text" placeholder="e.g. Tech Lead" style="font-size:12px;" />
+        <div class="sign-btns">
+          <button class="sign-btn" onclick="sign(3,'approved')">✓ Approve</button>
+          <button class="sign-btn" onclick="sign(3,'pending')">⏳ Pending</button>
+        </div>
+      </div>
+
+      <div class="sign-row" id="sr-4">
+        <div class="sign-person">
+          <div class="avatar" style="background:#E1F5EE;color:#0F6E56;">PH</div>
+          <div>
+            <div class="sign-name">Prasad Helaskar</div>
+            <div class="sign-role-sub">Approver</div>
+          </div>
+        </div>
+        <input type="text" placeholder="e.g. Dev Manager" style="font-size:12px;" />
+        <div class="sign-btns">
+          <button class="sign-btn" onclick="sign(4,'approved')">✓ Approve</button>
+          <button class="sign-btn" onclick="sign(4,'pending')">⏳ Pending</button>
+        </div>
+      </div>
+
+      <div class="signoff-info">
+        <i class="ti ti-info-circle"></i>
+        <span id="signoff-count">0 of 5 approvers have signed off</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Bar -->
+  <div class="submit-bar">
+    <div class="submit-info" id="submit-info">Fill required fields and get at least 1 sign-off to enable submission</div>
+    <div class="submit-actions">
+      <button type="button" class="download-btn" id="download-btn" onclick="downloadPdf()">
+        <i class="ti ti-download"></i> Download
+      </button>
+      <button class="submit-btn" id="submit-btn" onclick="submitForm()" disabled>
+        <i class="ti ti-send"></i> Submit closure
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">
+  <i class="ti ti-circle-check"></i> Test closure submitted successfully!
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  const checkState = {};
+  const signState  = {};
+
+  function toggle(key) {
+    const body = document.getElementById('body-' + key);
+    const chev = document.getElementById('chev-' + key);
+    if (!body) return;
+    const open = body.classList.toggle('open');
+    if (chev) chev.classList.toggle('open', open);
+  }
+
+  function chk(btn, key, val) {
+    checkState[key] = val;
+    const row = btn.closest('.check-item');
+    row.querySelectorAll('.chk-btn').forEach(b => b.classList.remove('pass','fail','na'));
+    btn.classList.add(val);
+    const keys = ['backward','forward','proof','regression','migration'];
+    const filled = keys.filter(k => checkState[k]).length;
+    const badge  = document.getElementById('badge-checklist');
+    if (filled === keys.length) {
+      badge.textContent = 'Complete'; badge.className = 'sec-badge badge-done';
+    } else {
+      badge.textContent = filled + '/' + keys.length + ' done'; badge.className = 'sec-badge badge-partial';
+    }
+    refresh();
+  }
+
+  function sign(idx, status) {
+    signState[idx] = status;
+    const row  = document.getElementById('sr-' + idx);
+    const btns = row.querySelectorAll('.sign-btn');
+    btns.forEach(b => b.classList.remove('approved','pending'));
+    btns[status === 'approved' ? 0 : 1].classList.add(status);
+    const count = Object.values(signState).filter(v => v === 'approved').length;
+    document.getElementById('signoff-count').textContent = count + ' of 5 approvers have signed off';
+    const badge = document.getElementById('badge-signoff');
+    if (count === 5) { badge.textContent = 'Complete'; badge.className = 'sec-badge badge-done'; }
+    else if (count > 0) { badge.textContent = count + '/5 approved'; badge.className = 'sec-badge badge-partial'; }
+    else { badge.textContent = 'Pending'; badge.className = 'sec-badge badge-pending'; }
+    refresh();
+  }
+
+  function calcStats() {
+    const total = parseInt(document.getElementById('tc-total').value) || 0;
+    const pass  = parseInt(document.getElementById('tc-pass').value)  || 0;
+    const cov   = document.getElementById('tc-coverage').value;
+    document.getElementById('disp-total').textContent    = total || '—';
+    document.getElementById('disp-passrate').textContent = total > 0 ? Math.round(pass/total*100) + '%' : '—';
+    document.getElementById('disp-coverage').textContent = cov ? cov + '%' : '—';
+    const badge = document.getElementById('badge-summary');
+    if (total > 0) { badge.textContent = 'Complete'; badge.className = 'sec-badge badge-done'; }
+    refresh();
+  }
+
+  function addRisk() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" placeholder="Describe the risk..." /></td>
+      <td><input type="text" placeholder="High" /></td>
+      <td><input type="text" placeholder="Open" /></td>
+      <td><input type="text" placeholder="Owner name" /></td>
+      <td><input type="text" placeholder="Notes" /></td>`;
+    document.getElementById('risk-body').appendChild(tr);
+  }
+
+  function refresh() {
+    const sl  = document.getElementById('shortcut-link').value.trim();
+    const pl  = document.getElementById('pr-link').value.trim();
+    const tl  = document.getElementById('testomata-link').value.trim();
+    const sd  = document.getElementById('start-date').value;
+    const ed  = document.getElementById('end-date').value;
+    const approvedCount = Object.values(signState).filter(v => v === 'approved').length;
+
+    // links badge
+    const lb = document.getElementById('badge-links');
+    if (sl && pl && tl) { lb.textContent = 'Complete'; lb.className = 'sec-badge badge-done'; }
+    else { lb.textContent = 'Pending'; lb.className = 'sec-badge badge-pending'; }
+
+    // meta badge
+    const mb = document.getElementById('badge-meta');
+    if (sd && ed) { mb.textContent = 'Complete'; mb.className = 'sec-badge badge-done'; }
+    else { mb.textContent = 'Pending'; mb.className = 'sec-badge badge-pending'; }
+
+    // progress count (rough scoring)
+    let done = 0;
+    if (sl && pl && tl) done++;
+    const checkKeys = ['backward','forward','proof','regression','migration'];
+    if (checkKeys.every(k => checkState[k])) done++;
+    if (document.getElementById('tc-total').value) done++;
+    done += 5; // sections 4-9 count as done-ish by default
+    if (sd && ed) done++;
+    if (approvedCount === 5) done++;
+    if (approvedCount > 0 && approvedCount < 5) done += 0.5;
+
+    const pct = Math.min(100, Math.round((done / 11) * 100));
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent  = pct + '%';
+    document.getElementById('prog-lbl').textContent  = Math.round(done) + ' of 11 sections complete';
+
+    // enable submit
+    const canSubmit = sl && pl && tl && sd && ed && approvedCount >= 1;
+    document.getElementById('submit-btn').disabled = !canSubmit;
+    document.getElementById('submit-info').textContent = canSubmit
+      ? `Ready to submit — ${approvedCount}/5 approvers signed off`
+      : 'Fill required fields (*) and get at least 1 sign-off to submit';
+  }
+
+  function submitForm() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').innerHTML = '<i class="ti ti-circle-check"></i> Submitted';
+    document.getElementById('submit-btn').style.background = '#3B6D11';
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  async function downloadPdf() {
+    const btn = document.getElementById('download-btn');
+    const label = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> Generating…';
+
+    const bodies = document.querySelectorAll('.section-body');
+    const chevrons = document.querySelectorAll('.sec-chevron');
+    const wasOpen = Array.from(bodies).map(b => b.classList.contains('open'));
+
+    bodies.forEach(b => b.classList.add('open'));
+    chevrons.forEach(c => c.classList.add('open'));
+    await new Promise(r => setTimeout(r, 400));
+
+    const filename = 'Test-Closure-' + new Date().toISOString().slice(0, 10) + '.pdf';
+
+    try {
+      await html2pdf()
+        .set({
+          margin: [8, 8, 8, 8],
+          filename,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        })
+        .from(document.querySelector('.page-wrap'))
+        .save();
+    } catch (err) {
+      console.error(err);
+      alert('Could not generate PDF. Please try again.');
+    } finally {
+      bodies.forEach((b, i) => {
+        if (!wasOpen[i]) b.classList.remove('open');
+      });
+      chevrons.forEach((c, i) => {
+        if (!wasOpen[i]) c.classList.remove('open');
+      });
+      btn.disabled = false;
+      btn.innerHTML = label;
+    }
+  }
+
+  refresh();
+</script>
+</body>
+</html>
