@@ -143,10 +143,30 @@
     return cover ? [cover, ...sections] : [...sections];
   }
 
+  function stripPlaceholders() {
+    const saved = [];
+    document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+      saved.push({ el, ph: el.getAttribute('placeholder') });
+      el.removeAttribute('placeholder');
+    });
+    const quillEditor = document.querySelector('#risk-editor .ql-editor');
+    if (quillEditor?.classList.contains('ql-blank')) {
+      quillEditor.classList.add('pdf-hide-placeholder');
+    }
+    return saved;
+  }
+
+  function restorePlaceholders(saved) {
+    saved.forEach(({ el, ph }) => el.setAttribute('placeholder', ph));
+    document.querySelectorAll('#risk-editor .ql-editor.pdf-hide-placeholder')
+      .forEach(el => el.classList.remove('pdf-hide-placeholder'));
+  }
+
   async function generateTestClosurePdf() {
     const wasOpen = saveSectionState();
     const actionBar = document.getElementById('action-bar');
     const savedDisplay = actionBar?.style.display ?? '';
+    const savedPlaceholders = stripPlaceholders();
 
     showOverlay('Generating PDF…');
     expandAllSections();
@@ -171,6 +191,7 @@
       return doc.output('blob');
     } finally {
       coverBlock.remove();
+      restorePlaceholders(savedPlaceholders);
       if (actionBar) actionBar.style.display = savedDisplay;
       restoreSectionState(wasOpen);
       hideOverlay();

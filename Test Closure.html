@@ -169,6 +169,10 @@
     box-shadow: 0 0 0 3px rgba(24,95,165,0.12);
   }
   textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+  input::placeholder,
+  textarea::placeholder { color: transparent; }
+  #risk-editor .ql-editor.ql-blank::before,
+  #risk-editor .ql-editor.pdf-hide-placeholder::before { content: none !important; }
   .expanded-text {
     min-height: 120px;
     line-height: 1.65;
@@ -446,19 +450,19 @@
     <div class="section-body open" id="body-links">
       <div class="field">
         <label class="lbl">Shortcut ticket link <span class="req">*</span></label>
-        <input type="url" id="shortcut-link" placeholder="https://app.shortcut.com/story/..." oninput="refresh()" />
+        <input type="url" id="shortcut-link" oninput="refresh()" />
       </div>
       <div class="field">
         <label class="lbl">PR link <span class="req">*</span></label>
-        <input type="url" id="pr-link" placeholder="https://github.com/org/repo/pull/..." oninput="refresh()" />
+        <input type="url" id="pr-link" oninput="refresh()" />
       </div>
       <div class="field">
         <label class="lbl">Testomata execution link <span class="req">*</span></label>
-        <input type="url" id="testomata-link" placeholder="https://..." oninput="refresh()" />
+        <input type="url" id="testomata-link" oninput="refresh()" />
       </div>
       <div class="field">
         <label class="lbl">Defects link</label>
-        <textarea id="defects-notes" class="expanded-text" placeholder="Add defect links, notes, or references (one per line)..."></textarea>
+        <textarea id="defects-notes" class="expanded-text"></textarea>
       </div>
     </div>
   </div>
@@ -551,8 +555,8 @@
           <option value="Brave">Brave</option>
         </select>
       </div>
-      <div class="field"><label class="lbl">Device <span class="req">*</span></label><input type="text" id="env-device" placeholder="iPhone 15, Pixel 8, iPad Pro" oninput="refresh()" /></div>
-      <div class="field"><label class="lbl">Browser / platform <span class="req">*</span></label><input type="text" id="env-platform" placeholder="Desktop, iOS, Android" oninput="refresh()" /></div>
+      <div class="field"><label class="lbl">Device <span class="req">*</span></label><input type="text" id="env-device" oninput="refresh()" /></div>
+      <div class="field"><label class="lbl">Browser / platform <span class="req">*</span></label><input type="text" id="env-platform" oninput="refresh()" /></div>
     </div>
   </div>
 
@@ -773,7 +777,7 @@
         ['clean']
       ]
     },
-    placeholder: 'Describe risks, known issues, and related notes...'
+    placeholder: ''
   });
   riskQuill.on('text-change', refresh);
   window.riskQuill = riskQuill;
