@@ -689,9 +689,15 @@
 
 <script src="drive-config.js"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script>
+  (function () {
+    var lib = window.jspdf;
+    window.__TCJsPDF = lib && lib.jsPDF ? lib.jsPDF : null;
+    window.__TCHtml2Canvas = typeof html2canvas === 'function' ? html2canvas : null;
+  })();
+</script>
 <script src="drive.js"></script>
 <script>
   const checkState = {};
@@ -800,14 +806,30 @@
   const PDF_PAGE_W = 780;
   const PDF_CANVAS_SCALE = 2;
 
+  async function waitForPdfLibs(maxMs) {
+    const deadline = Date.now() + (maxMs || 8000);
+    while (Date.now() < deadline) {
+      const h2c = window.__TCHtml2Canvas || (typeof html2canvas === 'function' ? html2canvas : null);
+      const JsPDF = window.__TCJsPDF || window.jspdf?.jsPDF || window.jsPDF;
+      if (h2c && JsPDF) {
+        window.__TCHtml2Canvas = h2c;
+        window.__TCJsPDF = JsPDF;
+        return;
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    throw new Error('PDF libraries failed to load. Disable ad blockers and refresh the page.');
+  }
+
   function getHtml2Canvas() {
-    if (typeof html2canvas === 'function') return html2canvas;
-    throw new Error('html2canvas failed to load. Check your network connection.');
+    const fn = window.__TCHtml2Canvas || (typeof html2canvas === 'function' ? html2canvas : null);
+    if (!fn) throw new Error('html2canvas failed to load. Refresh the page and try again.');
+    return fn;
   }
 
   function createJsPDF() {
-    const JsPDF = window.jspdf?.jsPDF || window.jsPDF;
-    if (!JsPDF) throw new Error('jsPDF failed to load. Check your network connection.');
+    const JsPDF = window.__TCJsPDF || window.jspdf?.jsPDF || window.jsPDF;
+    if (!JsPDF) throw new Error('jsPDF failed to load. Refresh the page and try again.');
     return new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
   }
 
@@ -1004,6 +1026,8 @@
   }
 
   async function generateTestClosurePdf() {
+    await waitForPdfLibs();
+
     const bodies = document.querySelectorAll('.section-body');
     const chevrons = document.querySelectorAll('.sec-chevron');
     const wasOpen = Array.from(bodies).map(b => b.classList.contains('open'));
