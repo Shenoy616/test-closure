@@ -128,9 +128,9 @@
     block.style.cssText = 'padding:48px 24px 40px;text-align:center;background:#F7F6F3;';
 
     const logo = document.querySelector('.app-logo');
-    const header = document.querySelector('.app-header-text');
+    const title = document.querySelector('.app-title');
     if (logo) block.appendChild(logo.cloneNode(true));
-    if (header) block.appendChild(header.cloneNode(true));
+    if (title) block.appendChild(title.cloneNode(true));
 
     pageWrap.insertBefore(block, pageWrap.firstChild);
     return block;
