@@ -1,8 +1,7 @@
 /**
- * Test Closure — PDF via section screenshots (one page per section).
+ * Test Closure — PDF via visible section screenshots (one page each).
  */
 (function () {
-  const CAPTURE_W = 780;
   const SCALE = 2;
   const JPEG_QUALITY = 0.92;
   const PAGE_MARGIN = 10;
@@ -24,102 +23,77 @@
     return new Promise(r => setTimeout(r, ms));
   }
 
+  function showOverlay(text) {
+    let el = document.getElementById('pdf-gen-overlay');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'pdf-gen-overlay';
+      el.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:999999',
+        'background:rgba(247,246,243,0.97)',
+        'display:flex', 'align-items:center', 'justify-content:center',
+        'font-family:DM Sans,sans-serif', 'font-size:15px', 'font-weight:600',
+        'color:#1A1917'
+      ].join(';');
+      document.body.appendChild(el);
+    }
+    el.textContent = text;
+    el.style.display = 'flex';
+  }
+
+  function hideOverlay() {
+    const el = document.getElementById('pdf-gen-overlay');
+    if (el) el.style.display = 'none';
+  }
+
   function expandAllSections() {
     document.querySelectorAll('.section-body').forEach(b => b.classList.add('open'));
     document.querySelectorAll('.sec-chevron').forEach(c => c.classList.add('open'));
   }
 
   function saveSectionState() {
-    const bodies = document.querySelectorAll('.section-body');
-    return Array.from(bodies).map(b => b.classList.contains('open'));
+    return Array.from(document.querySelectorAll('.section-body')).map(b => b.classList.contains('open'));
   }
 
   function restoreSectionState(wasOpen) {
-    const bodies = document.querySelectorAll('.section-body');
-    const chevrons = document.querySelectorAll('.sec-chevron');
-    bodies.forEach((b, i) => {
+    document.querySelectorAll('.section-body').forEach((b, i) => {
       if (!wasOpen[i]) b.classList.remove('open');
     });
-    chevrons.forEach((c, i) => {
+    document.querySelectorAll('.sec-chevron').forEach((c, i) => {
       if (!wasOpen[i]) c.classList.remove('open');
     });
   }
 
-  function mountCaptureNode(node) {
-    node.className = (node.className ? node.className + ' ' : '') + 'pdf-capture-node';
-    node.style.width = CAPTURE_W + 'px';
-    node.style.boxSizing = 'border-box';
-    node.style.position = 'fixed';
-    node.style.left = '0';
-    node.style.top = '0';
-    node.style.zIndex = '99998';
-    node.style.opacity = '0.01';
-    node.style.pointerEvents = 'none';
-    node.style.background = '#F7F6F3';
-    document.body.appendChild(node);
-    return node;
-  }
-
-  function buildCoverNode() {
-    const wrap = document.createElement('div');
-    wrap.style.padding = '40px 32px 48px';
-    wrap.style.textAlign = 'center';
-    wrap.style.background = '#F7F6F3';
-
-    const logo = document.querySelector('.app-logo');
-    const header = document.querySelector('.app-header-text');
-    if (logo) wrap.appendChild(logo.cloneNode(true));
-    if (header) wrap.appendChild(header.cloneNode(true));
-
-    return mountCaptureNode(wrap);
-  }
-
-  function cloneSectionForCapture(card) {
-    const clone = card.cloneNode(true);
-    const origFields = card.querySelectorAll('input, textarea, select');
-    const cloneFields = clone.querySelectorAll('input, textarea, select');
-    origFields.forEach((orig, i) => {
-      const field = cloneFields[i];
-      if (!field || orig.tagName !== field.tagName) return;
-      if (field.type === 'checkbox') field.checked = orig.checked;
-      else field.value = orig.value;
-    });
-
-    const body = clone.querySelector('.section-body');
-    if (body) body.classList.add('open');
-    const chev = clone.querySelector('.sec-chevron');
-    if (chev) chev.classList.add('open');
-    const head = clone.querySelector('.section-head');
-    if (head) head.removeAttribute('onclick');
-
-    clone.querySelectorAll('.ql-toolbar').forEach(t => { t.style.display = 'none'; });
-    if (clone.querySelector('#risk-editor') && window.riskQuill) {
-      const editorHtml = document.querySelector('#risk-editor .ql-editor')?.innerHTML;
-      const slot = clone.querySelector('#risk-editor');
-      if (editorHtml && slot) {
-        const box = document.createElement('div');
-        box.className = 'pdf-risk-snapshot';
-        box.style.cssText = 'font-size:13px;line-height:1.6;padding:8px 0;min-height:60px;';
-        box.innerHTML = editorHtml;
-        slot.innerHTML = '';
-        slot.appendChild(box);
-      }
+  function isCanvasBlank(canvas) {
+    if (!canvas.width || !canvas.height) return true;
+    const ctx = canvas.getContext('2d');
+    const w = Math.min(80, canvas.width);
+    const h = Math.min(80, canvas.height);
+    const data = ctx.getImageData(0, 0, w, h).data;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] > 10) return false;
     }
-
-    return mountCaptureNode(clone);
+    return true;
   }
 
   async function screenshot(el) {
-    return getHtml2Canvas()(el, {
+    el.scrollIntoView({ block: 'start', behavior: 'instant' });
+    await delay(200);
+
+    const canvas = await getHtml2Canvas()(el, {
       scale: SCALE,
       useCORS: true,
+      allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
-      width: CAPTURE_W,
-      windowWidth: CAPTURE_W,
-      scrollY: -window.scrollY,
-      scrollX: 0
+      scrollX: 0,
+      scrollY: -window.scrollY
     });
+
+    if (isCanvasBlank(canvas)) {
+      throw new Error('Screenshot was blank. Please try again.');
+    }
+    return canvas;
   }
 
   function addCanvasPage(doc, canvas, isFirstPage) {
@@ -137,48 +111,70 @@
     }
 
     if (!isFirstPage) doc.addPage();
-    const x = PAGE_MARGIN + (maxW - w) / 2;
-    const y = PAGE_MARGIN + (maxH - h) / 2;
-    doc.addImage(img, 'JPEG', x, y, w, h);
+    doc.addImage(
+      img,
+      'JPEG',
+      PAGE_MARGIN + (maxW - w) / 2,
+      PAGE_MARGIN + (maxH - h) / 2,
+      w,
+      h
+    );
+  }
+
+  function insertCoverBlock() {
+    const pageWrap = document.querySelector('.page-wrap');
+    const block = document.createElement('div');
+    block.id = 'pdf-cover-temp';
+    block.style.cssText = 'padding:48px 24px 40px;text-align:center;background:#F7F6F3;';
+
+    const logo = document.querySelector('.app-logo');
+    const header = document.querySelector('.app-header-text');
+    if (logo) block.appendChild(logo.cloneNode(true));
+    if (header) block.appendChild(header.cloneNode(true));
+
+    pageWrap.insertBefore(block, pageWrap.firstChild);
+    return block;
+  }
+
+  function getCaptureTargets() {
+    const pageWrap = document.querySelector('.page-wrap');
+    const cover = document.getElementById('pdf-cover-temp');
+    const sections = pageWrap.querySelectorAll('.section-card');
+    return cover ? [cover, ...sections] : [...sections];
   }
 
   async function generateTestClosurePdf() {
     const wasOpen = saveSectionState();
     const actionBar = document.getElementById('action-bar');
-    const actionBarDisplay = actionBar?.style.display || '';
+    const savedDisplay = actionBar?.style.display ?? '';
 
+    showOverlay('Generating PDF…');
     expandAllSections();
-    await delay(350);
+    await delay(400);
 
     if (actionBar) actionBar.style.display = 'none';
 
+    const coverBlock = insertCoverBlock();
+    await delay(150);
+
     const doc = new (getJsPDF())({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    const tempNodes = [];
+    const targets = getCaptureTargets();
     let firstPage = true;
 
     try {
-      const cover = buildCoverNode();
-      tempNodes.push(cover);
-      await delay(80);
-      const coverCanvas = await screenshot(cover);
-      addCanvasPage(doc, coverCanvas, firstPage);
-      firstPage = false;
-
-      const cards = document.querySelectorAll('.page-wrap .section-card');
-      for (const card of cards) {
-        const node = cloneSectionForCapture(card);
-        tempNodes.push(node);
-        await delay(80);
-        const canvas = await screenshot(node);
+      for (let i = 0; i < targets.length; i++) {
+        showOverlay('Generating PDF… (' + (i + 1) + '/' + targets.length + ')');
+        const canvas = await screenshot(targets[i]);
         addCanvasPage(doc, canvas, firstPage);
         firstPage = false;
       }
-
       return doc.output('blob');
     } finally {
-      tempNodes.forEach(n => n.remove());
-      if (actionBar) actionBar.style.display = actionBarDisplay;
+      coverBlock.remove();
+      if (actionBar) actionBar.style.display = savedDisplay;
       restoreSectionState(wasOpen);
+      hideOverlay();
+      window.scrollTo(0, 0);
     }
   }
 
